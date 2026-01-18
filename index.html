@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unclick+</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Tahoma, sans-serif;
+      color: #ffffff;
+      cursor: pointer;
+      padding: 20px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #000;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: inherit;
+      background-size: cover;
+      background-position: center;
+      filter: blur(30px);
+      transform: scale(1.1);
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+    }
+
+    body.bg-fade::before { opacity: 0; }
+
+    /* PANTALLA DE INICIO - SOLO CORAZÓN */
+    #start-screen {
+      position: fixed; inset: 0; background: #000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 100; transition: opacity 0.8s ease;
+    }
+
+    .heart-loader {
+      font-size: 70px;
+      animation: heartbeat 1.2s infinite;
+      user-select: none;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+
+    @keyframes heartbeat {
+      0%, 70%, 100% { transform: scale(1); }
+      14%, 42% { transform: scale(1.3); }
+    }
+
+    .tap-text {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    /* CONTENEDOR ORIGINAL */
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      padding: 28px;
+      border-radius: 22px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      display: none;
+    }
+
+    img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 16px; margin-bottom: 18px; display: none; }
+    h1 { font-size: 1.4rem; line-height: 1.4; margin: 0; }
+    .fade-in { opacity: 1; transform: scale(1); }
+    .fade-out { opacity: 0; transform: scale(0.97); }
+
+    .texto-final { animation: respirar 6s ease-in-out infinite; }
+    @keyframes respirar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+    
+.heart {
+  position: fixed;
+  font-size: 22px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  animation: aparecer 0.8s ease forwards, latido 1.2s ease-in-out infinite;
+}
+
+
+    @keyframes aparecer {
+      0% { opacity: 0; transform: scale(0.6); }
+      100% { opacity: 1; transform: scale(1.3); }
+    }
+
+    #hearts-layer { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+
+@keyframes latido {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.35);
+  }
+}
+
+
+.final-phrase {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+
+  </style>
+</head>
+
+<body onclick="handleGlobalClick()">
+
+  <div id="start-screen">
+    <div class="heart-loader">❤️</div>
+    <div class="tap-text">Toca para empezar</div>
+  </div>
+
+  <div id="hearts-layer"></div>
+
+  <div class="container" id="mainContainer">
+    <img id="vibeImage" src="1.jpeg" />
+    <h1 id="phrase"></h1>
+  </div>
+
+  <audio id="bgMusic" loop><source src="mayonaise.mp3" type="audio/mpeg"></audio>
+  <audio id="typewriterSound"><source src="typewriter.wav" type="audio/wav"></audio>
+
+  <script>
+    const phrases = ["Hola mi bebote precioso", "❤️Feliz 14 de febrero❤️", "Paso a contarte cómo funciona esto...", "Cada click es un recuerdo", "Por si algún día se te jode el celu", "o la memoria nos juega una mala pasada", "Acá queda un pedacito de nosotros", "Para que siempre nos vuelvas a encontrar", "Te amo muy mucho", "Espero que te guste 🥺", "Y ojalá que este álbum siga llenándose de fotos nuestras", "por muchisimo tiempo más", "quiero que nunca olvides lo mucho que te amo", "lo mucho que disfruto pasar tiempo con vos", "ya sea catando piquemachos", "tomando birrita", "mirando series interminables", "comiendo helarito", "y hasta dedeandote el pupo xd", "quiero que sepas que cada momento junto a vos es especial", "por eso te elijo hoy, mañana y siempre", "sos lo mejor que me paso en la vida", "y mi lugar favorito en el mundo"];
+    const images = ["1.jpeg", "2.jpeg", "3.jpeg", "4.jpeg", "7.jpeg", "13.jpeg", "11.jpeg", "21.jpeg", "12.jpeg", "8.jpeg", "9.jpeg", "23.jpeg", "17.jpeg", "15.jpeg", "20.jpeg", "10.jpeg", "24.JPG", "6.jpeg", "22.jpeg", "pupo.jpg","27.PNG", "26.jpg", "25.jpg", "18.jpeg"];    
+    const mensajeFinal = "con muchisimo amor, Luz";
+
+    const phraseEl = document.getElementById("phrase");
+    const imageEl = document.getElementById("vibeImage");
+    const music = document.getElementById("bgMusic");
+    const typeSound = document.getElementById("typewriterSound");
+    const startScreen = document.getElementById("start-screen");
+
+    let status = "intro"; 
+    let phraseIndex = 0;
+    let imageIndex = 0;
+    let isWriting = false;
+    let albumTerminado = false;
+
+    document.body.style.backgroundImage = `url(${images[0]})`;
+
+    function handleGlobalClick() {
+      if (isWriting || albumTerminado) return;
+
+      if (status === "intro") {
+        status = "opening";
+        startScreen.style.opacity = "0";
+        music.volume = 0.2;
+        music.play();
+
+        setTimeout(() => {
+          startScreen.style.display = "none";
+          document.getElementById("mainContainer").style.display = "block";
+          status = "active";
+          escribirTitulo("NUESTRO ÁLBUM VIRTUAL", 90);
+        }, 800);
+      } else if (status === "active") {
+        changeVibe();
+      }
+    }
+
+    function escribirTitulo(texto, velocidad) {
+      isWriting = true;
+      phraseEl.textContent = "";
+      let i = 0;
+      const intervalo = setInterval(() => {
+        phraseEl.textContent += texto.charAt(i);
+        if (typeSound) {
+          typeSound.currentTime = 0;
+          typeSound.play().catch(()=>{});
+        }
+        i++;
+        if (i >= texto.length) {
+          clearInterval(intervalo);
+          isWriting = false;
+          // Subir volumen tras el título
+          let vol = music.volume;
+          const fadeIn = setInterval(() => {
+            if (vol < 0.4) { vol += 0.05; music.volume = vol; }
+            else { clearInterval(fadeIn); }
+          }, 200);
+        }
+      }, velocidad);
+    }
+
+function changeVibe() {
+  if (albumTerminado) return;
+
+  let showing = (phraseEl.style.display !== "none") ? "text" : "image";
+
+if (showing === "text") {
+    // FRASE -> FOTO
+    phraseEl.classList.add("fade-out");
+    setTimeout(() => {
+      phraseEl.style.display = "none";
+      phraseEl.classList.remove("fade-out");
+
+      // Mostrar siguiente imagen solo si existe
+      if (imageIndex < images.length) {
+        imageEl.src = images[imageIndex];
+        imageEl.style.display = "block";
+        imageEl.classList.add("fade-in");
+        document.body.style.transition = "background-image 0.7s ease-in-out";
+        document.body.style.backgroundImage = `url(${images[imageIndex]})`;
+        imageIndex++; // avanzar índice de imagen aquí
+      }
+    }, 600);
+
+  } else {
+    // FOTO -> FRASE
+    imageEl.classList.add("fade-out");
+    setTimeout(() => {
+      imageEl.style.display = "none";
+      imageEl.classList.remove("fade-out");
+
+      // Si llegamos al final de todas las imágenes, mostrar mensaje final
+      if (imageIndex >= images.length) {
+        document.body.style.transition = "background-image 0.7s ease-in-out";
+        document.body.style.backgroundImage = `url(${images[images.length - 1]})`;
+
+        phraseEl.textContent = mensajeFinal;
+        phraseEl.style.display = "block";
+        phraseEl.classList.add("fade-in", "texto-final");
+
+        corazonesApareciendo();
+        music.volume = 0.5;
+        albumTerminado = true;
+        return;
+      }
+
+      // Mostrar siguiente frase solo si existe
+      if (phraseIndex < phrases.length) {
+        phraseEl.textContent = phrases[phraseIndex];
+        phraseEl.style.display = "block";
+        phraseEl.classList.add("fade-in");
+        phraseIndex++;
+      }
+
+      // Si ya no hay frase pero queda imagen, solo se mostrará la imagen en el próximo click
+    }, 600);
+  }
+}
+
+function corazonesApareciendo() {
+  const layer = document.getElementById("hearts-layer");
+
+  const intervalo = setInterval(() => {
+    for (let i = 0; i < 13; i++) {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.textContent = Math.random() < 0.5 ? "🤍" : "❤️";
+
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.top = Math.random() * 100 + "vh";
+
+      layer.appendChild(heart);
+      setTimeout(() => heart.remove(), 2500);
+    }
+  }, 300);
+
+  setTimeout(() => clearInterval(intervalo), 8000);
+}
+
+let tocandoPantalla = false;
+
+// Cuando empieza a tocar la pantalla
+document.addEventListener("touchstart", () => {
+  if (!albumTerminado) return;
+  tocandoPantalla = true;
+});
+
+// Cuando deja de tocar
+document.addEventListener("touchend", () => {
+  tocandoPantalla = false;
+});
+
+// Cuando desliza el dedo
+document.addEventListener("touchmove", (e) => {
+  if (!albumTerminado || !tocandoPantalla) return;
+
+  const touch = e.touches[0];
+  const heart = document.createElement("div");
+  heart.className = "heart";
+
+  // rojo o blanco
+  heart.textContent = Math.random() < 0.5 ? "🤍" : "❤️";
+
+  heart.style.left = touch.clientX + "px";
+  heart.style.top = touch.clientY + "px";
+
+  document.getElementById("hearts-layer").appendChild(heart);
+
+  setTimeout(() => heart.remove(), 2000);
+});
+
+
+  </script>
+</body>
+</html>
