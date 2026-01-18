@@ -143,8 +143,8 @@
     <h1 id="phrase"></h1>
   </div>
 
-  <audio id="bgMusic" loop><source src="mayonaise.mp3" type="audio/mpeg"></audio>
-  <audio id="typewriterSound"><source src="typewriter.wav" type="audio/wav"></audio>
+ <audio id="bgMusic" loop preload="auto" playsinline></audio>
+
 
   <script>
     const phrases = ["Hola mi bebote precioso", "❤️Feliz 14 de febrero❤️", "Paso a contarte cómo funciona esto...", "Cada click es un recuerdo", "Por si algún día se te jode el celu", "o la memoria nos juega una mala pasada", "Acá queda un pedacito de nosotros", "Para que siempre nos vuelvas a encontrar", "Te amo muy mucho", "Espero que te guste 🥺", "Y ojalá que este álbum siga llenándose de fotos nuestras", "por muchisimo tiempo más", "quiero que nunca olvides lo mucho que te amo", "lo mucho que disfruto pasar tiempo con vos", "ya sea catando piquemachos", "tomando birrita", "mirando series interminables", "comiendo helarito", "y hasta dedeandote el pupo xd", "quiero que sepas que cada momento junto a vos es especial", "por eso te elijo hoy, mañana y siempre", "sos lo mejor que me paso en la vida", "y mi lugar favorito en el mundo"];
@@ -154,6 +154,9 @@
     const phraseEl = document.getElementById("phrase");
     const imageEl = document.getElementById("vibeImage");
     const music = document.getElementById("bgMusic");
+    music.src = "mayonaise.mp3";
+    music.load();
+
     const typeSound = document.getElementById("typewriterSound");
     const startScreen = document.getElementById("start-screen");
 
@@ -164,24 +167,29 @@
     let albumTerminado = false;
 
     document.body.style.backgroundImage = `url(${images[0]})`;
+if (status === "intro") {
+  status = "opening";
 
-    function handleGlobalClick() {
-      if (isWriting || albumTerminado) return;
+  music.muted = false;
+  music.volume = 0.2;
+  music.currentTime = 0;
+  music.play().then(() => {
+    console.log("🎵 música OK");
+  }).catch(() => {
+    console.log("❌ bloqueada");
+  });
 
-      if (status === "intro") {
-        status = "opening";
-        startScreen.style.opacity = "0";
-        music.volume = 0.2;
-        music.currentTime = 0;
-        music.play().catch(() => {});
+  startScreen.style.opacity = "0";
 
+  setTimeout(() => {
+    startScreen.style.display = "none";
+    document.getElementById("mainContainer").style.display = "block";
+    status = "active";
+    escribirTitulo("NUESTRO ÁLBUM VIRTUAL", 90);
+  }, 800);
+}
 
-        setTimeout(() => {
-          startScreen.style.display = "none";
-          document.getElementById("mainContainer").style.display = "block";
-          status = "active";
-          escribirTitulo("NUESTRO ÁLBUM VIRTUAL", 90);
-        }, 800);
+   
       } else if (status === "active") {
         changeVibe();
       }
