@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unclick+</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Tahoma, sans-serif;
+      color: #ffffff;
+      cursor: pointer;
+      padding: 20px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: inherit;
+      background-size: cover;
+      background-position: center;
+      filter: blur(30px);
+      transform: scale(1.1);
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+    }
+
+    body.bg-fade::before { opacity: 0; }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      padding: 28px;
+      border-radius: 22px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      min-height: 120px;
+      transition: height 0.3s ease;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      max-height: 60vh;
+      object-fit: contain;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    h1 { font-size: 1.4rem; line-height: 1.4; margin: 0; }
+    img, h1 { opacity: 1; transition: opacity 0.4s ease; }
+    .fade-out { opacity: 0; }
+    .fade-in { opacity: 1; }
+
+    #hearts-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .heart {
+      position: fixed;
+      font-size: 20px;
+      opacity: 0;
+      pointer-events: none;
+      animation: aparecer 5s ease forwards;
+      z-index: 2;
+    }
+
+    @keyframes aparecer {
+      0% { opacity: 0; transform: scale(0.6); }
+      100% { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* overlay móvil */
+    #mobileOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      z-index: 50;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      font-size: 1.3rem;
+      padding: 20px;
+      cursor: pointer;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div id="hearts-layer"></div>
+
+<div class="container">
+  <img id="vibeImage" src="1.jpeg" alt="foto" />
+  <h1 id="phrase">NUESTRO ÁLBUM VIRTUAL</h1>
+</div>
+
+<div id="mobileOverlay">Toca para activar la música y empezar el álbum</div>
+
+<audio id="bgMusic" loop>
+  <source src="mayonaise.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const phrases = [
+  "Hola mi bebote precioso","❤️Feliz 14 de febrero❤️","Paso a contarte cómo funciona esto...","Cada click es un recuerdo","Por si algún día se te jode el celu","o la memoria nos juega una mala pasada","Acá queda un pedacito de nosotros","Para que siempre nos vuelvas a encontrar","Te amo muy mucho","Espero que te guste 🥺","Y ojalá que este álbum siga llenándose de fotos nuestras","por muchisimo tiempo más","quiero que nunca olvides lo mucho que te amo","lo mucho que disfruto pasar tiempo con vos","ya sea catando piquemachos","tomando birrita","mirando series interminables","comiendo helarito","y hasta dedeandote el pupo xd","quiero que sepas que cada momento junto a vos es especial","por eso te elijo hoy, mañana y siempre","sos lo mejor que me paso en la vida","y mi lugar favorito en el mundo"
+];
+const images = [
+  "1.jpeg","2.jpeg","3.jpeg","4.jpeg","7.jpeg","13.jpeg","11.jpeg","21.jpeg","12.jpeg","8.jpeg","9.jpeg","23.jpeg","17.jpeg","15.jpeg","20.jpeg","10.jpeg","24.JPG","6.jpeg","22.jpeg","pupo.jpg","27.PNG","26.jpg","25.jpg","18.jpeg"
+];
+const mensajeFinal = "con muchisimo amor, Luz";
+
+const phraseEl = document.getElementById("phrase");
+const imageEl = document.getElementById("vibeImage");
+const music = document.getElementById("bgMusic");
+const overlay = document.getElementById("mobileOverlay");
+
+let showing = "text";
+let phraseIndex = 0;
+let imageIndex = 0;
+let musicStarted = false;
+let albumTerminado = false;
+
+// estado inicial
+document.body.style.backgroundImage = `url(${images[0]})`;
+phraseEl.classList.add("fade-in");
+
+// detectar móvil
+function isMobile() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); }
+
+// mostrar overlay en móviles
+if(isMobile()) overlay.style.display = "flex";
+
+// función para subir volumen gradualmente
+function subirVolumen(objetivo, paso = 0.02, tiempo = 200) {
+  const intervalo = setInterval(() => {
+    if (music.volume < objetivo) music.volume = Math.min(music.volume + paso, objetivo);
+    else clearInterval(intervalo);
+  }, tiempo);
+}
+
+// función principal
+function changeVibe() {
+  if (albumTerminado) return;
+
+  // iniciar música la primera vez
+  if (!musicStarted) {
+    music.volume = 0.15;
+    music.play().catch(()=>{});
+    subirVolumen(0.3);
+    musicStarted = true;
+  }
+
+  if (showing === "text") {
+    phraseEl.classList.add("fade-out");
+    setTimeout(() => {
+      phraseEl.style.display = "none";
+      phraseEl.classList.remove("fade-out");
+
+      const currentImage = images[imageIndex];
+      imageEl.src = currentImage;
+      imageEl.style.display = "block";
+      void imageEl.offsetWidth;
+      imageEl.classList.add("fade-in");
+
+      document.body.classList.add("bg-fade");
+      setTimeout(() => {
+        document.body.style.backgroundImage = `url(${currentImage})`;
+        document.body.classList.remove("bg-fade");
+      }, 300);
+
+      imageIndex++;
+      showing = "image";
+    }, 400);
+
+  } else {
+    imageEl.classList.add("fade-out");
+    setTimeout(() => {
+      imageEl.style.display = "none";
+      imageEl.classList.remove("fade-out");
+
+      if (phraseIndex < phrases.length) {
+        phraseEl.textContent = phrases[phraseIndex];
+        phraseEl.style.display = "block";
+        void phraseEl.offsetWidth;
+        phraseEl.classList.add("fade-in");
+        phraseIndex++;
+        showing = "text";
+      } else {
+        phraseEl.textContent = mensajeFinal;
+        phraseEl.style.display = "block";
+        phraseEl.classList.add("fade-in", "texto-final");
+        corazonesApareciendo();
+        subirVolumen(0.5);
+        albumTerminado = true;
+      }
+    }, 400);
+  }
+}
+
+// función corazones
+function corazonesApareciendo() {
+  const layer = document.getElementById("hearts-layer");
+  const intervalo = setInterval(() => {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.textContent = Math.random() < 0.5 ? "🤍" : "❤️";
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.top = Math.random() * 100 + "vh";
+    layer.appendChild(heart);
+    setTimeout(() => heart.remove(), 5000);
+  }, 120);
+
+  setTimeout(() => clearInterval(intervalo), 18000);
+}
+
+// click en overlay móvil
+overlay.addEventListener("click", () => {
+  overlay.style.display = "none"; // ocultar overlay
+  changeVibe();
+});
+
+// click en body para PC/tablet
+document.body.addEventListener("click", (e)=>{
+  if(!isMobile()) changeVibe();
+});
+</script>
+
+</body>
+</html>
